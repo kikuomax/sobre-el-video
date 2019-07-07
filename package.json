@@ -11,12 +11,20 @@
   "author": "Kikuo Emoto",
   "license": "MIT",
   "scripts": {
-    "build": "webpack"
+    "build": "webpack",
+    "lint": "eslint --ext .js,.vue src"
   },
   "devDependencies": {
     "@babel/core": "^7.5.0",
     "@babel/preset-env": "^7.5.0",
+    "babel-eslint": "^10.0.2",
     "babel-loader": "^8.0.6",
+    "css-loader": "^3.0.0",
+    "eslint": "^5.3.0",
+    "eslint-config-airbnb-base": "^13.2.0",
+    "eslint-import-resolver-webpack": "^0.11.1",
+    "eslint-plugin-import": "^2.18.0",
+    "eslint-plugin-vue": "^5.2.3",
     "html-webpack-plugin": "^3.2.0",
     "style-loader": "^0.23.1",
     "vue": "^2.6.10",
