@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <h1>{{ title }}</h1>
+  <div class='container'>
+    <router-view />
   </div>
 </template>
 

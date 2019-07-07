@@ -35,6 +35,13 @@ module.exports = {
       'error',
       'always'
     ],
+    'arrow-parens': [
+      'error',
+      'as-needed',
+      {
+        requireForBlockBody: false
+      }
+    ],
     'import/extensions': [
       'error',
       'always',

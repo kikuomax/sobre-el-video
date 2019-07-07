@@ -12,13 +12,15 @@
   "license": "MIT",
   "scripts": {
     "build": "webpack",
-    "lint": "eslint --ext .js,.vue src"
+    "lint": "eslint --ext .js,.vue src",
+    "start:dev": "webpack-dev-server"
   },
   "devDependencies": {
     "@babel/core": "^7.5.0",
     "@babel/preset-env": "^7.5.0",
     "babel-eslint": "^10.0.2",
     "babel-loader": "^8.0.6",
+    "bulma": "^0.7.5",
     "css-loader": "^3.0.0",
     "eslint": "^5.3.0",
     "eslint-config-airbnb-base": "^13.2.0",
@@ -29,8 +31,10 @@
     "style-loader": "^0.23.1",
     "vue": "^2.6.10",
     "vue-loader": "^15.7.0",
+    "vue-router": "^3.0.7",
     "vue-template-compiler": "^2.6.10",
     "webpack": "^4.35.2",
-    "webpack-cli": "^3.3.5"
+    "webpack-cli": "^3.3.5",
+    "webpack-dev-server": "^3.7.2"
   }
 }

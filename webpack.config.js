@@ -12,6 +12,10 @@ module.exports = {
     filename: '[name].js',
     path: path.resolve(__dirname, './docs')
   },
+  devServer: {
+    contentBase: path.resolve(__dirname, './docs'),
+    port: 8000
+  },
   module: {
     rules: [
       {
@@ -30,12 +34,18 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        loader: 'style-loader'
+        loader: [
+          'style-loader',
+          'css-loader'
+        ]
       }
     ]
   },
   resolve: {
-    extensions: [ '.js', '.vue' ]
+    extensions: [ '.js', '.vue' ],
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
   },
   plugins: [
     new HtmlWebpackPlugin({
