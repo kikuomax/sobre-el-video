@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Sobre el Video: allocates a package repository (S3 bucket) for AWS Lambda'
+
+Resources:
+  PackageRepository:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+Outputs:
+  S3BucketArn:
+    Description: 'ARN of the created package repository for AWS Lambda'
+    Value: !GetAtt PackageRepository.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-arn' 
