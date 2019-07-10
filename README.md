@@ -1,6 +1,8 @@
-# Sobre el Video
+# 何これ?
 
 HTML5 + JavaScriptを使った動画収録・保存・再生について実験してみる。
+
+[GitHub Pages](https://kikuomax.github.io/sobre-el-video/)上でデモが確認できます。
 
 ## シナリオ
 
@@ -40,3 +42,42 @@ HTML5 + JavaScriptを使った動画収録・保存・再生について実験�
 5. `アプリ`は、`閲覧する動画`をダウンロードする。
     - `閲覧する動画` &rightarrow; `ダウンロードした動画`
 6. `アプリ`は、`ダウンロードした動画`を再生する。
+
+## AWSにデプロイ
+
+### DynamoDBテーブルの作成
+
+ユーザのアップロードした動画を検索するためのデータベースを作成します。
+
+```
+aws cloudformation deploy --template-file aws/cloudformation/dynamodb-template.yaml --stack-name sobre-el-video-main-table
+```
+
+`--stack-name`オプションに指定する名前は任意のもので問題ありません。
+実行には適切な権限とリージョン指定が必要です。
+
+### パッケージリポジトリ作成
+
+Lambda関数のパッケージを格納するリポジトリを作成します。
+
+```
+aws cloudformation deploy --template-file aws/cloudformation/package-repository.yaml --stack-name sobre-el-video-package-repository
+```
+
+`--stack-name`オプションに指定する名前は任意のもので問題ありません。
+実行には適切な権限とリージョン指定が必要です。
+
+### 動画格納先のS3バケットの作成
+
+アップロードされた動画を格納するS3バケットを作成します。
+
+```
+aws cloudformation deploy --template-file aws/cloudformation/video-bucket.yaml --stack-name sobre-el-video-video-bucket
+```
+
+`--stack-name`オプションに指定する名前は任意のもので問題ありません。
+実行には適切な権限とリージョン指定が必要です。
+
+### REST APIの作成
+
+動画管理のためのREST APIを作成します。
