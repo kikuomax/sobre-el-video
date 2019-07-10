@@ -153,7 +153,10 @@ export default {
     const streamConstraints = {
       video: true,
       audio: {
-        echoCancellation: true,
+        autoGainControl: true,
+        // NOTE: no need for echo canceller
+        //       because audio playback is suppressed
+        echoCancellation: false,
         noiseSuppression: true
       }
     }
@@ -163,9 +166,11 @@ export default {
         this.isDeviceReady = true
         this.stream = stream
         // starts playback of captured video
+        // excludes audio tracks from the playback to avoid echoes
+        const playbackStream = new MediaStream(stream.getVideoTracks())
         /* eslint-disable-next-line prefer-destructuring */
         const video = this.$refs.video
-        video.srcObject = stream
+        video.srcObject = playbackStream
         video.play()
       })
       .catch(err => {
