@@ -141,7 +141,9 @@ export default {
         return '.webm'
       }
       if (mimeType.startsWith('video/x-matroska')) {
-        return '.mkv'
+        // TODO: should be .mkv?
+        //       anyway, .mkv did not work but .webm did with OSX + Chrome
+        return '.webm'
       }
       // default
       return ''
