@@ -12,6 +12,11 @@ Resources:
         RestrictPublicBuckets: true
 
 Outputs:
+  S3BucketName:
+    Description: 'Name of the created package repository for AWS Lambda'
+    Value: !Ref PackageRepository
+    Export:
+      Name: !Sub '${AWS::StackName}-name'
   S3BucketArn:
     Description: 'ARN of the created package repository for AWS Lambda'
     Value: !GetAtt PackageRepository.Arn
