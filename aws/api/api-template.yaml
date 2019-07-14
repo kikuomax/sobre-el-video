@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Sobre el Video API definition'
+
+Resources:
+  VideoApi:
+    Type: 'AWS::ApiGateway::RestApi'
+    Properties:
+      Name: !Ref AWS::StackName
+      Description: 'REST API of Sobre el Video'
+
+  # GET /
+  RootGET:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      OperationName: 'Welcome'
+      RestApiId: !Ref VideoApi
+      ResourceId: !GetAtt VideoApi.RootResourceId
+      HttpMethod: 'GET'
+      AuthorizationType: 'NONE'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            text/html: 'Empty'
+      Integration:
+        Type: 'MOCK'
+        PassthroughBehavior: 'WHEN_NO_TEMPLATES'
+        RequestTemplates:
+          application/json: >
+            { "statusCode": 200 }
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseTemplates:
+              text/html: |
+                <!DOCTYPE html>
+                <html>
+                  <head>
+                    <meta charset="utf-8">
+                    <title>Sobre el Video</title>
+                  </head>
+                  <body>
+                    <h1>Welcome!</h1>
+                  </body>
+                </html>
+
+Outputs:
+  RestApiId:
+    Description: 'ID of the REST API'
+    Value: !Ref VideoApi
+    Export:
+      Name: !Sub '${AWS::StackName}-id'

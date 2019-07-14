@@ -45,53 +45,76 @@ HTML5 + JavaScriptを使った動画収録・保存・再生について実験�
 
 ## AWSにデプロイ
 
+AWSへのデプロイは[CloudFormation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html)を用いて行います。
+複数のCloudFormationテンプレートを使うので、混乱を避けるために以下のプレフィックスをスタック名に使います。
+`sobre-el-video`は任意のものに置き換えて問題ありません。
+
+```
+BASE_STACK_NAME=sobre-el-video
+```
+
+CloudFormationスタックをデプロイするためには、適切な権限を持つクリデンシャルとリージョン指定が必要です。
+以下の解説ではクリデンシャルとリージョン指定は省略していますので、適宜設定して実行してください。
+
 ### DynamoDBテーブルの作成
 
 ユーザのアップロードした動画を検索するためのデータベースを作成します。
 
 ```
-aws cloudformation deploy --template-file aws/cloudformation/dynamodb-template.yaml --stack-name sobre-el-video-main-table
+aws cloudformation deploy --template-file aws/cloudformation/dynamodb-template.yaml --stack-name ${BASE_STACK_NAME}-main-table
 ```
-
-`--stack-name`オプションに指定する名前は任意のもので問題ありません。
-実行には適切な権限とリージョン指定が必要です。
 
 ### パッケージリポジトリ作成
 
 Lambda関数のパッケージを格納するリポジトリを作成します。
 
 ```
-aws cloudformation deploy --template-file aws/cloudformation/package-repository.yaml --stack-name sobre-el-video-package-repository
+aws cloudformation deploy --template-file aws/cloudformation/package-repository.yaml --stack-name ${BASE_STACK_NAME}-package-repository
 ```
 
-`--stack-name`オプションに指定する名前は任意のもので問題ありません。
-実行には適切な権限とリージョン指定が必要です。
+ここで作成したバケットはあとのコマンドで使用するので、`CODE_REPOSITORY`環境変数に設定しておきます。
+
+```
+CODE_REPOSITORY=`aws --query "Stacks[0].Outputs[?OutputKey=='S3BucketArn']|[0].OutputValue" cloudformation describe-stacks --stack-name ${BASE_STACK_NAME}-package-repository | sed 's/^"//; s/"$//'`
+```
+
+上記は、`aws`コマンドの`--query`オプションを指定し、コマンドの出力結果(JSONオブジェクト)を加工しています。
+以下のクエリは、`S3BucketArn`出力の値のみを取り出します。
+クエリの書き方については、[JMESPath](http://jmespath.org)のドキュメントを確認してください。
+
+```
+Stacks[0].Outputs[?OutputKey=='S3BucketArn']|[0].OutputValue
+```
 
 ### 動画格納先のS3バケットの作成
 
 アップロードされた動画を格納するS3バケットを作成します。
 
 ```
-aws cloudformation deploy --template-file aws/cloudformation/video-bucket.yaml --stack-name sobre-el-video-video-bucket
+aws cloudformation deploy --template-file aws/cloudformation/video-bucket.yaml --stack-name ${BASE_STACK_NAME}-video-bucket
 ```
-
-`--stack-name`オプションに指定する名前は任意のもので問題ありません。
-実行には適切な権限とリージョン指定が必要です。
 
 ### REST APIの作成
 
 動画管理のためのREST APIを作成します。
 
+```
+cd aws/api
+```
+
+```
+aws cloudformation deploy --template-file api-template.yaml --stack-name ${BASE_STACK_NAME}-api
+```
+
 #### 動画のアップロード
 
 1. `アプリ`は、`API`に`ユーザ`の`動画ファイル`を`POST`する。
     - `POST /videos/${ユーザ}/`
-    - `POST`される内容には以下の情報も含む。
-        - `撮影日時`
 2. `API`は、`動画ファイル`の`ハッシュ値`を計算する。
     - Lambdaによる処理
-3. `API`は、`ハッシュ値`をキーにして`ユーザ`および`撮影日時`と`動画ファイル`を関連づける。
+3. `API`は、`ハッシュ値`をキーにして`ユーザ`および`投稿日時`と`動画ファイル`を関連づける。
     - Lambdaによる処理
+        - `投稿日時`はLambdaが起動された日時。
     - DynamoDBへの記録
 4. `API`は、`ハッシュ値`をキーにして`動画ファイル`を`動画ストレージ`に保存する。
     - Lambdaによる処理
