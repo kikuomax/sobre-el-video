@@ -75,11 +75,11 @@ aws cloudformation deploy --template-file aws/cloudformation/package-repository.
 ここで作成したバケットはあとのコマンドで使用するので、`CODE_REPOSITORY`環境変数に設定しておきます。
 
 ```
-CODE_REPOSITORY=`aws --query "Stacks[0].Outputs[?OutputKey=='S3BucketArn']|[0].OutputValue" cloudformation describe-stacks --stack-name ${BASE_STACK_NAME}-package-repository | sed 's/^"//; s/"$//'`
+CODE_REPOSITORY=`aws --query "Stacks[0].Outputs[?OutputKey=='S3BucketName']|[0].OutputValue" cloudformation describe-stacks --stack-name ${BASE_STACK_NAME}-package-repository | sed 's/^"//; s/"$//'`
 ```
 
 上記は、`aws`コマンドの`--query`オプションを指定し、コマンドの出力結果(JSONオブジェクト)を加工しています。
-以下のクエリは、`S3BucketArn`出力の値のみを取り出します。
+以下のクエリは、`S3BucketName`出力の値のみを取り出します。
 クエリの書き方については、[JMESPath](http://jmespath.org)のドキュメントを確認してください。
 
 ```
@@ -102,8 +102,23 @@ aws cloudformation deploy --template-file aws/cloudformation/video-bucket.yaml -
 cd aws/api
 ```
 
+Lambda関数をビルドします。
+ビルドだけは[AWS Serverless Application Model (AWS SAM)](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html)を使用します。
+
 ```
-aws cloudformation deploy --template-file api-template.yaml --stack-name ${BASE_STACK_NAME}-api
+sam build --template lambda-sam.yaml --use-container
+```
+
+Lambda関数のコードをパッケージし、上記で作成したS3バケット(`$CODE_REPOSITORY`)にアップロードします。
+
+```
+aws cloudformation package --template-file api-template.yaml --s3-bucket $CODE_REPOSITORY --output-template-file api-packaged.yaml
+```
+
+REST APIを作成します。
+
+```
+aws cloudformation deploy --template-file api-packaged.yaml --stack-name ${BASE_STACK_NAME}-api --capabilities CAPABILITY_IAM
 ```
 
 #### 動画のアップロード
