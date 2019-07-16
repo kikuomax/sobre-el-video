@@ -60,7 +60,7 @@ Resources:
                     - ''
                     - - Fn::ImportValue: !Sub '${BaseStackName}-video-bucket-arn'
                       - '/*'
-  # - Role of the function invoker's role
+  # - Role of the function invoker
   StoreVideoFunctionInvokerRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -123,13 +123,44 @@ Resources:
       ParentId: !GetAtt VideoApi.RootResourceId
       PathPart: 'video'
  
-  # /video/${user}
+  # /video/{user}
   VideoUserResource:
     Type: 'AWS::ApiGateway::Resource'
     Properties:
       RestApiId: !Ref VideoApi
       ParentId: !Ref VideoResource
       PathPart: '{user}'
+  # - OPTIONS (for CORS support)
+  VideoUserOPTIONS:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      OperationName: 'Preflight for /video/{user}'
+      RestApiId: !Ref VideoApi
+      ResourceId: !Ref VideoUserResource
+      HttpMethod: 'OPTIONS'
+      AuthorizationType: 'NONE'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+      Integration:
+        Type: 'MOCK'
+        PassthroughBehavior: 'WHEN_NO_MATCH'
+        RequestTemplates:
+          application/json: >
+            { "statusCode": 200 }
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: '{}'
   # - POST
   VideoUserPOST:
     Type: 'AWS::ApiGateway::Method'
@@ -143,6 +174,10 @@ Resources:
         - StatusCode: 200
           ResponseModels:
             application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
       Integration:
         Type: 'AWS'
         ContentHandling: 'CONVERT_TO_TEXT'
@@ -159,6 +194,10 @@ Resources:
             }
         IntegrationResponses:
           - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
 
 Outputs:
   RestApiId:
