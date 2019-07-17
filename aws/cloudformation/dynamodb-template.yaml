@@ -18,12 +18,12 @@ Resources:
       AttributeDefinitions:
         - AttributeName: 'User'
           AttributeType: 'S'
-        - AttributeName: 'Date'
+        - AttributeName: 'Tag'
           AttributeType: 'S'
       KeySchema:
         - AttributeName: 'User'
           KeyType: 'HASH'
-        - AttributeName: 'Date'
+        - AttributeName: 'Tag'
           KeyType: 'RANGE'
       BillingMode: 'PROVISIONED'
       ProvisionedThroughput:
