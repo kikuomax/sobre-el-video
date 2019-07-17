@@ -142,3 +142,37 @@ aws cloudformation deploy --template-file api-packaged.yaml --stack-name ${BASE_
     - `動画ファイル`の`ハッシュ値`は何らかの手段で取得済み。
 2. `API`は、`ハッシュ値`に関連づけられた`動画ファイル`を`動画ストレージ`から読み込む。
 3. `API`は、`アプリ`に取得した`動画ファイル`を返す。
+
+### メインテーブルの構造
+
+- パーティションキー: User
+- ソートキー: Tag
+
+Tagの値
+- `video:<SHA256>`: 動画ファイル
+
+検索例
+- ユーザの動画をすべて取得: `Tag BETWEEN 'video:' AND 'video;'`
+
+## トラブルシューティング
+
+### dynamodb-templateスタックを更新できない
+
+`api-template`がデフォルトで`dynamodb-template`の`MainTableArn`アウトプットの`Export`に依存するため、`api-template`の設定を変更しないと`dynamodb-template`を更新することはできません。
+
+`api-template`の`MainTableArn`パラメータにARN(`$MAIN_TABLE_ARN`と仮定)を直接指定してスタックを更新します。
+
+```
+aws cloudformation deploy --template-file api-packaged.yaml --stack-name ${BASE_STACK_NAME}-api --capabilities CAPABILITY_IAM --parameter-overrides "MainTableArn=$MAIN_TABLE_ARN"
+```
+
+`dynamodb-template`スタックをアップデート。
+たぶん、この段階で`dynamodb-template`の`MainTableArn`アウトプットの値が変わります。
+
+`api-template`の`MainTableArn`パラメータに`null`を指定してスタックを更新します。
+
+```
+aws cloudformation deploy --template-file api-packaged.yaml --stack-name ${BASE_STACK_NAME}-api --capabilities CAPABILITY_IAM --parameter-overrides MainTableArn=null
+```
+
+こんな面倒をするくらいなら、テンプレートをひとつのファイルに統一した方がマシな気がしますけど...
