@@ -6,20 +6,25 @@ Parameters:
     Description: 'Base name of the stack set'
     Type: 'String'
     Default: 'sobre-el-video'
+  MainTableName:
+    Description: 'Name of the main table. May be "null" to import the default.'
+    Type: 'String'
+    Default: 'null'
   MainTableArn:
-    Description: 'ARN of the main table. May be omitted.'
+    Description: 'ARN of the main table. May be "null" to import the default.'
     Type: 'String'
     Default: 'null'
   VideoBucketName:
-    Description: 'Name of the S3 bucket for videos. May be omitted.'
+    Description: 'Name of the S3 bucket for videos. May be "null" to import the default.'
     Type: 'String'
     Default: 'null'
   VideoBucketArn:
-    Description: 'ARN of the S3 bucket for videos. May be omitted.'
+    Description: 'ARN of the S3 bucket for videos. May be "null" to import the default.'
     Type: 'String'
     Default: 'null'
 
 Conditions:
+  IsMainTableNameGiven: !Not [!Equals [!Ref MainTableName, 'null']]
   IsMainTableArnGiven: !Not [!Equals [!Ref MainTableArn, 'null']]
   IsVideoBucketNameGiven: !Not [!Equals [!Ref VideoBucketName, 'null']]
   IsVideoBucketArnGiven: !Not [!Equals [!Ref VideoBucketArn, 'null']]
@@ -48,8 +53,8 @@ Resources:
         Variables:
           MAIN_TABLE_NAME:
             Fn::If:
-              - IsMainTableArnGiven
-              - !Ref MainTableArn
+              - IsMainTableNameGiven
+              - !Ref MainTableName
               - Fn::ImportValue: !Sub '${BaseStackName}-main-table-name'
           VIDEO_BUCKET_NAME:
             Fn::If:
@@ -86,6 +91,18 @@ Resources:
                           - !Ref VideoBucketArn
                           - Fn::ImportValue: !Sub '${BaseStackName}-video-bucket-arn'
                       - '/*'
+        - PolicyName: 'MainTablePut'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'dynamodb:PutItem'
+                Resource:
+                  Fn::If:
+                    - IsMainTableArnGiven
+                    - !Ref MainTableArn
+                    - Fn::ImportValue: !Sub '${BaseStackName}-main-table-arn'
   # - Role of the function invoker
   StoreVideoFunctionInvokerRole:
     Type: 'AWS::IAM::Role'
