@@ -1,6 +1,6 @@
 <template>
   <div class="video-capture">
-    <h1 class="title is-1">Video Cpature</h1>
+    <h3 class="title is-3">Video Cpature</h3>
     <div>
       <div
         class="video-container"
@@ -16,18 +16,22 @@
       >
         録画
       </button>
-      <a
-        v-show="capturedData.data !== null"
-        :href="capturedData.objectUrl"
-        :download="capturedData.fileName"
+      <button
+        type="submit"
+        class="button is-link"
+        :disabled="capturedData.data == null"
+        @click="uploadCapturedVideo"
       >
-        保存
-      </a>
+        アップロード
+      </button>
     </div>
   </div>
 </template>
 
 <script>
+/* eslint-disable-next-line import/no-extraneous-dependencies */
+import { mapState } from 'vuex'
+
 /**
  * Video Capture.
  *
@@ -47,6 +51,10 @@
  *   `1000`; i.e., 1 second by default.
  *
  *   NOTE: Does not matter on Safari as of 2019-07-08.
+ *
+ * @vue-prop {String} user
+ *
+ *   User ID to work with. `kikuo` by default.
  */
 export default {
   name: 'video-capture',
@@ -62,6 +70,10 @@ export default {
     timesliceInMs: {
       type: Number,
       default: 1000
+    },
+    user: {
+      type: String,
+      default: 'kikuo'
     }
   },
   data () {
@@ -81,6 +93,13 @@ export default {
         // file name of the captured video
         fileName: ''
       }
+    }
+  },
+  computed: {
+    ...mapState(['apiBaseUrl']),
+    // Upload destination URL
+    uploadUrl () {
+      return `${this.apiBaseUrl}/video/${this.user}`
     }
   },
   methods: {
@@ -130,6 +149,26 @@ export default {
           this.recordingTimeInMs
         )
       }
+    },
+    uploadCapturedVideo () {
+      console.log('uploading video')
+      const body = new Blob(
+        [this.capturedData.data],
+        { type: 'application/octet-stream' }
+      )
+      fetch(
+        this.uploadUrl,
+        {
+          method: 'POST',
+          body
+        }
+      )
+        .then(response => {
+          console.log(response)
+          response.text()
+            .then(text => console.log(text))
+        })
+        .catch(err => console.log(err))
     },
     // Returns the file extension corresponding to a given mime-type.
     // Returns an empty string if there is no known extension for mimeType.
